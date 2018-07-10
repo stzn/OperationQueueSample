@@ -67,74 +67,74 @@ extension PhotoListViewController {
 
 // FIXME: 読み込みが遅い(ロジックの見直し)
 
-//// MARK: - scrollview delegate
-//
-//extension PhotoListViewController {
-//
-//    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-//        suspendAllOperations()
-//    }
-//
-//    override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//        if !decelerate {
-//            loadImagesForOnscreenCells()
-//            resumeAllOperations()
-//        }
-//    }
-//
-//    override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-//        loadImagesForOnscreenCells()
-//        resumeAllOperations()
-//    }
-//}
-//
-//extension PhotoListViewController {
-//
-//    func suspendAllOperations() {
-//        providers.forEach { $0.suspend() }
-//    }
-//
-//    func resumeAllOperations() {
-//        providers.forEach { $0.resume() }
-//    }
-//
-//    func loadImagesForOnscreenCells() {
-//
-//        guard let pathsArray = self.tableView.indexPathsForVisibleRows else {
-//            return
-//        }
-//
-//        DispatchQueue.global(qos: .userInitiated).async {
-//
-//            let visibleList = self.photoList.enumerated().filter { i, _ in pathsArray.contains(IndexPath(row: i, section: 0))
-//            }
-//
-//            let visibleProviders = self.providers.filter { visibleList.map{$1}.contains($0.photoInfo) }
-//            let cancelProviders = self.providers.subtracting(visibleProviders)
-//            cancelProviders.forEach { $0.cancel() }
-//
-//            var newSet = self.providers.subtracting(visibleProviders)
-//
-//            visibleList.map{$1}.forEach { photoInfo in
-//
-//                let provider = SepiaImageProvider(photoInfo: photoInfo) { image in
-//
-//                    guard let index = visibleList.index(where: { _, info in info == photoInfo}) else {
-//                        return
-//                    }
-//                    DispatchQueue.main.async {
-//                        guard let cell = self.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? PhotoCell else {
-//                            return
-//                        }
-//
-//                        cell.updateImageView(with: image)
-//                    }
-//                }
-//                newSet.insert(provider)
-//            }
-//            self.providers = newSet
-//        }
-//    }
-//}
+// MARK: - scrollview delegate
+
+extension PhotoListViewController {
+
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        suspendAllOperations()
+    }
+
+    override func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            loadImagesForOnscreenCells()
+            resumeAllOperations()
+        }
+    }
+
+    override func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        loadImagesForOnscreenCells()
+        resumeAllOperations()
+    }
+}
+
+extension PhotoListViewController {
+
+    func suspendAllOperations() {
+        providers.forEach { $0.suspend() }
+    }
+
+    func resumeAllOperations() {
+        providers.forEach { $0.resume() }
+    }
+
+    func loadImagesForOnscreenCells() {
+
+        guard let pathsArray = self.tableView.indexPathsForVisibleRows else {
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+
+            let visibleList = self.photoList.enumerated().filter { i, _ in pathsArray.contains(IndexPath(row: i, section: 0))
+            }
+
+            let visibleProviders = self.providers.filter { visibleList.map{$1}.contains($0.photoInfo) }
+            let cancelProviders = self.providers.subtracting(visibleProviders)
+            cancelProviders.forEach { $0.cancel() }
+
+            var newSet: Set<SepiaImageProvider> = []
+
+            visibleList.map{$1}.forEach { photoInfo in
+
+                let provider = SepiaImageProvider(photoInfo: photoInfo) { image in
+
+                    guard let index = visibleList.index(where: { _, info in info == photoInfo}) else {
+                        return
+                    }
+                    DispatchQueue.main.async {
+                        guard let cell = self.tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? PhotoCell else {
+                            return
+                        }
+
+                        cell.updateImageView(with: image)
+                    }
+                }
+                newSet.insert(provider)
+            }
+            self.providers = newSet
+        }
+    }
+}
 
 
